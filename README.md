@@ -5,8 +5,15 @@ Concepto de demostración con dos imágenes aportadas por el usuario. No represe
 ## Experiencia
 - Portada de pantalla completa: transición suave cada 7 segundos, selección manual y pausa.
 - Respeta preferencias de movimiento reducido; se detiene con la pestaña oculta.
-- Composición adaptada a celular, fichas de dos líneas y consulta editable/copiable.
+- Composición adaptada a celular, catálogo con vista frontal y tres cuartos (hover, toque o teclado), marcas ilustrativas y consulta editable/copiable.
+- Mapa general de Minas cargado solo al pulsar “Ver mapa de referencia”; no contiene pin del comercio ni dirección real.
 - No recibe datos en un servidor, confirma visitas ni cobra.
+
+## Datos de contacto de la demo
+`dist/contact-config.js` deja dirección, WhatsApp, horario, teléfono, correo y pin como valores nulos hasta que se confirmen. No completar con datos supuestos. Las consultas preparadas se copian en el navegador; no se envían. El mapa se carga al pedirlo y el enlace externo a OpenStreetMap queda disponible como respaldo.
+
+## Catálogo y marcas
+`dist/assets/metal-catalogo.png` y `dist/assets/acetato-catalogo.png` son sprites de demostración con una vista frontal y otra a tres cuartos. No son fotografías exactas de productos disponibles. Las marcas del bloque “Marcas” son ejemplos ilustrativos y no afirman representación ni disponibilidad.
 
 ## Publicación
 Sitio estático en `dist/`, sin dependencias ni compilación. GitHub Actions publica esa carpeta con cada cambio en main. Abrir mediante un servidor HTTP para probar la copia al portapapeles y los archivos.
