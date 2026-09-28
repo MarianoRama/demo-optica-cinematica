@@ -5,6 +5,19 @@ const models = [
 const hero = document.querySelector('.hero');
 const pauseButton = document.querySelector('#pause');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const brandMarquee = document.querySelector('#brand-marquee');
+const brandMotionButton = document.querySelector('#brand-motion');
+const brandReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+function syncBrandMotionPreference() { brandMotionButton.hidden = brandReducedMotion.matches; }
+brandMotionButton.addEventListener('click', () => {
+ const paused = brandMarquee.classList.toggle('is-paused');
+ brandMotionButton.setAttribute('aria-pressed', String(paused));
+ brandMotionButton.setAttribute('aria-label', paused ? 'Reanudar movimiento de marcas' : 'Pausar movimiento de marcas');
+ brandMotionButton.textContent = paused ? 'Reanudar marcas ▶' : 'Pausar marcas Ⅱ';
+});
+document.addEventListener('visibilitychange', () => brandMarquee.classList.toggle('is-hidden', document.hidden));
+brandReducedMotion.addEventListener('change', syncBrandMotionPreference);
+syncBrandMotionPreference();
 let current = 0, paused = reducedMotion.matches, timer;
 const video = document.querySelector('#hero-film');
 const media = window.LUMINA_MEDIA || {};

@@ -5,7 +5,7 @@ Concepto de demostración con dos imágenes aportadas por el usuario. No represe
 ## Experiencia
 - Portada de pantalla completa: transición suave cada 7 segundos, selección manual y pausa.
 - Respeta preferencias de movimiento reducido; se detiene con la pestaña oculta.
-- Composición adaptada a celular, catálogo con vista frontal y tres cuartos (hover, toque o teclado), marcas ilustrativas y consulta editable/copiable.
+- Composición adaptada a celular, catálogo con vista frontal y tres cuartos (hover, toque o teclado), franja continua de marcas con pausa y consulta editable/copiable.
 - Mapa general de Minas cargado solo al pulsar “Ver mapa de referencia”; no contiene pin del comercio ni dirección real.
 - No recibe datos en un servidor, confirma visitas ni cobra.
 
