@@ -19,13 +19,14 @@ function scene(index) {
  document.querySelector('#model-description').textContent = models[current].description;
 }
 function startTimer() { clearInterval(timer); if (!paused && !document.hidden && !videoMode) timer = setInterval(() => scene((current + 1) % models.length), 7000); }
-function fallback() { videoMode = false; video.pause(); video.hidden = true; document.querySelectorAll('.scene-choice').forEach(el => el.hidden = false); scene(current); startTimer(); }
+function fallback() { videoMode = false; hero.classList.remove('video-active'); video.pause(); video.hidden = true; document.querySelectorAll('.scene-choice').forEach(el => el.hidden = false); scene(current); startTimer(); }
 function activateVideo() {
  const url = (window.innerWidth <= 800 ? media.mobileVideo : media.desktopVideo) || media.desktopVideo;
  if (!url || reducedMotion.matches) return;
- video.src = url; videoMode = true; video.hidden = false;
+ video.src = url; videoMode = true; video.hidden = false; hero.classList.add('video-active');
  document.querySelectorAll('.scene-choice').forEach(el => el.hidden = true);
- document.querySelector('#model-name').textContent = 'La colección, en movimiento';
+ document.querySelector('#model-index').textContent = 'FILM — 01';
+ document.querySelector('#model-name').textContent = 'Una mirada en movimiento';
  document.querySelector('#model-description').textContent = 'Una forma de mirar.';
  video.addEventListener('error', fallback, { once: true });
  video.play().catch(fallback);

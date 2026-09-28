@@ -19,3 +19,6 @@ Sitio estático en `dist/`, sin dependencias ni compilación. GitHub Actions pub
 5. Los textos se editan en HTML, no deben estar dibujados dentro del video. Probar móvil después de reemplazar assets.
 
 Ver `PROMPTS-FLOW.md` para los briefs. La versión inicial usa imágenes animadas con fundido; no pretende ser un video generado.
+
+## Video recibido y base acrílica
+El archivo optica-film.mp4 es el original aportado por el usuario (8 segundos, 1280 × 720). La portada aplica un fundido inferior para ocultar la base acrílica; no se ha eliminado el objeto de los fotogramas ni restaurado el video. No reutilizar esa máscara automáticamente con otra toma: podría ocultar el producto. El prompt actualizado pide un estudio vacío sin base.
