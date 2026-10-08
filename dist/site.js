@@ -1,6 +1,6 @@
 const models = [
- { name: 'Línea Metal', description: 'Precisión en cada detalle.', image: 'assets/metal-catalogo.png', style: 'Líneas rectas · frente liviano', color: 'Gris', detail: 'Una silueta de líneas definidas, con un frente discreto y detalles metálicos. Una referencia para quienes prefieren una presencia sutil.' },
- { name: 'Línea Acetato', description: 'Presencia natural.', image: 'assets/acetato-catalogo.png', style: 'Frente redondeado · textura cálida', color: 'Marrón', detail: 'Curvas suaves y una textura cálida que pone el armazón en primer plano. Una referencia para explorar un estilo con más carácter.' }
+ { name: 'Línea Metal', description: 'Precisión en cada detalle.', image: 'assets/metal-catalogo.webp', style: 'Líneas rectas · frente liviano', color: 'Gris', detail: 'Una silueta de líneas definidas, con un frente discreto y detalles metálicos. Una referencia para quienes prefieren una presencia sutil.' },
+ { name: 'Línea Acetato', description: 'Presencia natural.', image: 'assets/acetato-catalogo.webp', style: 'Frente redondeado · textura cálida', color: 'Marrón', detail: 'Curvas suaves y una textura cálida que pone el armazón en primer plano. Una referencia para explorar un estilo con más carácter.' }
 ];
 const hero = document.querySelector('.hero');
 const pauseButton = document.querySelector('#pause');
@@ -18,33 +18,90 @@ brandMotionButton.addEventListener('click', () => {
 document.addEventListener('visibilitychange', () => brandMarquee.classList.toggle('is-hidden', document.hidden));
 brandReducedMotion.addEventListener('change', syncBrandMotionPreference);
 syncBrandMotionPreference();
-let current = 0, paused = reducedMotion.matches, timer;
-const video = document.querySelector('#hero-film');
 const media = window.LUMINA_MEDIA || {};
-let videoMode = false;
-function refreshPause() { hero.classList.toggle('is-paused', paused); pauseButton.textContent = paused ? '▶' : 'Ⅱ'; pauseButton.setAttribute('aria-label', paused ? 'Reproducir animación' : 'Pausar animación'); }
-function scene(index) {
- current = index;
- document.querySelectorAll('.hero-frame').forEach((frame, i) => frame.classList.toggle('is-active', i === current));
- document.querySelectorAll('.scene-choice').forEach((button, i) => { button.classList.toggle('is-active', i === current); button.setAttribute('aria-pressed', String(i === current)); });
- document.querySelector('#model-index').textContent = `0${current + 1} / 02`;
- document.querySelector('#model-name').textContent = models[current].name;
- document.querySelector('#model-description').textContent = models[current].description;
+const imageMs = (media.imageSeconds || 7) * 1000;
+const saveData = navigator.connection?.saveData === true;
+const heroVisual = document.querySelector('#hero-visual');
+const sceneControls = document.querySelector('#scene-controls');
+const slides = (media.slides?.length ? media.slides : [
+ { type: 'image', src: 'assets/metal.webp', label: 'Metal', name: 'Línea Metal', description: 'Precisión en cada detalle.' },
+ { type: 'image', src: 'assets/acetato.webp', label: 'Acetato', name: 'Línea Acetato', description: 'Presencia natural.' }
+]).filter(s => s.type !== 'video' || (!reducedMotion.matches && !saveData));
+let current = 0, target = 0, paused = reducedMotion.matches, running = false, timer = 0, pending = 0, remaining = 0, startedAt = 0, token = 0;
+
+slides.forEach((s, i) => {
+ if (i === 0 && s.type === 'image') { s.el = heroVisual.querySelector('.hero-frame'); s.loaded = true; }
+ else if (s.type === 'video') {
+  const v = document.createElement('video');
+  v.className = 'hero-frame hero-film'; v.muted = true; v.playsInline = true; v.preload = 'none';
+  v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
+  v.addEventListener('ended', () => { if (slides[current] === s) next(); });
+  v.addEventListener('error', () => { if (s.loaded) skip(i); });
+  s.el = v; heroVisual.append(v);
+ } else {
+  const img = new Image(); img.className = 'hero-frame'; img.alt = ''; img.decoding = 'async';
+  s.el = img; heroVisual.append(img);
+ }
+ const button = document.createElement('button');
+ button.type = 'button'; button.className = 'scene-choice'; button.setAttribute('aria-pressed', 'false');
+ const number = document.createElement('span'); number.textContent = String(i + 1).padStart(2, '0');
+ button.append(number, ` ${s.label}`, document.createElement('i'));
+ button.addEventListener('click', () => go(i));
+ sceneControls.insertBefore(button, pauseButton);
+ s.button = button;
+});
+
+function load(s) { if (s.loaded) return; s.loaded = true; if (s.type === 'video') s.el.preload = 'auto'; s.el.src = s.src; }
+function nextIndex(i) { let k = i; do { k = (k + 1) % slides.length; } while (slides[k].failed && k !== i); return k; }
+function next() { go(nextIndex(current)); }
+function skip(i) { const s = slides[i]; if (s.failed) return; s.failed = true; s.button.hidden = true; s.el.pause?.(); if (target === i) go(nextIndex(i)); }
+function refreshPause() { pauseButton.textContent = paused ? '▶' : 'Ⅱ'; pauseButton.setAttribute('aria-label', paused ? 'Reproducir animación' : 'Pausar animación'); }
+
+function setActive(i) {
+ const prev = slides[current], s = slides[i];
+ if (prev === s) { s.button.classList.remove('is-active'); void s.button.offsetWidth; }
+ current = i;
+ slides.forEach((x, k) => { x.el.classList.toggle('is-active', k === i); x.button.classList.toggle('is-active', k === i); x.button.setAttribute('aria-pressed', String(k === i)); });
+ if (prev !== s && prev.type === 'video') setTimeout(() => { if (slides[current] !== prev) prev.el.pause(); }, 1700);
+ hero.classList.toggle('video-active', s.type === 'video');
+ document.querySelector('#model-index').textContent = `${String(i + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`;
+ document.querySelector('#model-name').textContent = s.name;
+ document.querySelector('#model-description').textContent = s.description;
 }
-function startTimer() { clearInterval(timer); if (!paused && !document.hidden && !videoMode) timer = setInterval(() => scene((current + 1) % models.length), 7000); }
-function fallback() { videoMode = false; hero.classList.remove('video-active'); video.pause(); video.hidden = true; document.querySelectorAll('.scene-choice').forEach(el => el.hidden = false); scene(current); startTimer(); }
-function activateVideo() {
- const url = (window.innerWidth <= 800 ? media.mobileVideo : media.desktopVideo) || media.desktopVideo;
- if (!url || reducedMotion.matches) return;
- video.src = url; videoMode = true; video.hidden = false; hero.classList.add('video-active');
- document.querySelectorAll('.scene-choice').forEach(el => el.hidden = true);
- document.querySelector('#model-index').textContent = 'FILM — 01';
- document.querySelector('#model-name').textContent = 'Una mirada en movimiento';
- document.querySelector('#model-description').textContent = 'Una forma de mirar.';
- video.addEventListener('error', fallback, { once: true });
- video.play().catch(fallback);
+function schedule(ms) { clearTimeout(timer); remaining = ms; startedAt = performance.now(); if (running) timer = setTimeout(next, ms); }
+function hold() { const s = slides[current]; if (s.type === 'video') s.el.pause(); else { clearTimeout(timer); remaining = Math.max(0, remaining - (performance.now() - startedAt)); } }
+function resume() { const s = slides[current]; if (s.type === 'video') s.el.play().catch(() => skip(current)); else { startedAt = performance.now(); clearTimeout(timer); timer = setTimeout(next, remaining); } }
+function sync() {
+ hero.classList.toggle('is-paused', paused); hero.classList.toggle('is-hidden', document.hidden);
+ const shouldRun = !paused && !document.hidden;
+ if (shouldRun === running) return;
+ running = shouldRun; running ? resume() : hold();
 }
-document.querySelectorAll('[data-scene]').forEach(button => button.addEventListener('click', () => { scene(Number(button.dataset.scene)); startTimer(); }));
+
+function go(i) {
+ const my = ++token, s = slides[i];
+ target = i;
+ clearTimeout(timer); clearTimeout(pending);
+ load(s); load(slides[nextIndex(i)]);
+ if (s.type === 'image') {
+  const ready = s.el.complete && s.el.naturalWidth ? Promise.resolve() : new Promise(r => { s.el.addEventListener('load', r, { once: true }); s.el.addEventListener('error', r, { once: true }); });
+  ready.then(() => { if (my !== token) return; hero.style.setProperty('--slide-duration', `${imageMs / 1000}s`); setActive(i); schedule(imageMs); });
+  return;
+ }
+ const v = s.el;
+ const start = () => {
+  if (my !== token) return;
+  clearTimeout(pending);
+  hero.style.setProperty('--slide-duration', `${Number.isFinite(v.duration) && v.duration ? v.duration : 8}s`);
+  setActive(i);
+  if (!running) v.pause();
+ };
+ pending = setTimeout(() => { if (my === token) skip(i); }, 8000);
+ if (v.readyState >= 1) v.currentTime = 0;
+ if (running) { v.addEventListener('playing', start, { once: true }); v.play().catch(() => { if (my === token) skip(i); }); }
+ else if (v.readyState >= 2) start();
+ else v.addEventListener('loadeddata', start, { once: true });
+}
 const hoverCatalog = window.matchMedia('(hover: hover) and (pointer: fine)');
 function setCatalogView(button, angle) {
  const model = models[Number(button.dataset.viewToggle)];
@@ -59,10 +116,16 @@ document.querySelectorAll('[data-view-toggle]').forEach(button => {
   button.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' || e.pointerType === 'pen') setCatalogView(button, false); });
  }
 });
-pauseButton.addEventListener('click', () => { paused = !paused; refreshPause(); if (videoMode) { if (paused) video.pause(); else video.play().catch(fallback); } startTimer(); });
-document.addEventListener('visibilitychange', () => { if (videoMode) { if (document.hidden) video.pause(); else if (!paused) video.play().catch(fallback); } startTimer(); });
-reducedMotion.addEventListener('change', e => { paused = e.matches; if (paused && videoMode) video.pause(); refreshPause(); startTimer(); });
-refreshPause(); activateVideo(); startTimer();
+pauseButton.addEventListener('click', () => { paused = !paused; refreshPause(); sync(); });
+document.addEventListener('visibilitychange', sync);
+reducedMotion.addEventListener('change', e => { paused = e.matches; refreshPause(); sync(); });
+refreshPause();
+hero.style.setProperty('--slide-duration', `${imageMs / 1000}s`);
+setActive(0);
+running = !paused && !document.hidden;
+sync();
+schedule(imageMs);
+if (slides.length > 1) load(slides[nextIndex(0)]);
 
 const dialogOpeners = new WeakMap();
 function openDialog(dialog) { dialogOpeners.set(dialog, document.activeElement); dialog.showModal(); document.body.style.overflow = 'hidden'; }

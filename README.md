@@ -3,7 +3,7 @@
 Concepto de demostración con dos imágenes aportadas por el usuario. No representa una óptica real ni disponibilidad de productos.
 
 ## Experiencia
-- Portada de pantalla completa: transición suave cada 7 segundos, selección manual y pausa.
+- Portada de pantalla completa que recorre los modelos en orden (Metal → Carey en video → Acetato), con fundido, selección manual y pausa. Las fotos duran 7 segundos; el video avanza al terminar.
 - Respeta preferencias de movimiento reducido; se detiene con la pestaña oculta.
 - Composición adaptada a celular, catálogo con vista frontal y tres cuartos (hover, toque o teclado), franja continua de marcas con pausa y consulta editable/copiable.
 - Mapa general de Minas cargado solo al pulsar “Ver mapa de referencia”; no contiene pin del comercio ni dirección real.
@@ -13,17 +13,17 @@ Concepto de demostración con dos imágenes aportadas por el usuario. No represe
 `dist/contact-config.js` deja dirección, WhatsApp, horario, teléfono, correo y pin como valores nulos hasta que se confirmen. No completar con datos supuestos. Las consultas preparadas se copian en el navegador; no se envían. El mapa se carga al pedirlo y el enlace externo a OpenStreetMap queda disponible como respaldo.
 
 ## Catálogo y marcas
-`dist/assets/metal-catalogo.png` y `dist/assets/acetato-catalogo.png` son sprites de demostración con una vista frontal y otra a tres cuartos. No son fotografías exactas de productos disponibles. Las marcas del bloque “Marcas” son ejemplos ilustrativos y no afirman representación ni disponibilidad.
+`dist/assets/metal-catalogo.webp` y `dist/assets/acetato-catalogo.webp` (originales en `.png`) son sprites de demostración con una vista frontal y otra a tres cuartos. No son fotografías exactas de productos disponibles. Las marcas del bloque “Marcas” son ejemplos ilustrativos y no afirman representación ni disponibilidad.
 
 ## Publicación
 Sitio estático en `dist/`, sin dependencias ni compilación. GitHub Actions publica esa carpeta con cada cambio en main. Abrir mediante un servidor HTTP para probar la copia al portapapeles y los archivos.
 
-## Integrar el video de Flow
-1. Conservar los PNG como respaldo.
-2. Guardar el MP4 o WebM en `dist/assets/`. Preferir un archivo breve, sin pista de audio y comprimido para web.
-3. En `dist/media-config.js`, configurar `desktopVideo: 'assets/optica-desktop.mp4'` y, si hay versión vertical, `mobileVideo: 'assets/optica-mobile.mp4'`.
-4. La portada muestra el video y mantiene el control de pausa. Los selectores de imágenes se ocultan durante el video, para evitar cambios desincronizados. Si el video falla o no se permite autoplay, vuelve a las imágenes; con movimiento reducido se conservan imágenes quietas.
-5. Los textos se editan en HTML, no deben estar dibujados dentro del video. Probar móvil después de reemplazar assets.
+## Sumar un modelo a la portada
+1. Guardar la imagen (`.webp`, ~1376 × 768) o el video (MP4 breve, sin audio, comprimido para web) en `dist/assets/`. Conservar los PNG originales como respaldo; la web usa los `.webp`.
+2. En `dist/media-config.js`, agregar una línea a `slides` con `type` (`'image'` o `'video'`), `src`, `label` (texto del selector), `name` y `description`. El primero tiene que ser una imagen: es la que se ve mientras carga.
+3. Cada modelo usa el mismo fundido inferior que oculta la base acrílica. Con una toma distinta, revisar en celular que no tape el armazón.
+4. Si un video falla o el navegador no permite reproducirlo, se salta y la portada sigue con las imágenes. Con movimiento reducido o ahorro de datos no se cargan videos.
+5. Los textos se editan en HTML, no deben estar dibujados dentro del video.
 
 Ver `PROMPTS-FLOW.md` para los briefs. La versión inicial usa imágenes animadas con fundido; no pretende ser un video generado.
 
